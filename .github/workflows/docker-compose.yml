@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Наш API сервіс
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_DB=food_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    depends_on:
+      - db
+
+  # База даних
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=food_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
