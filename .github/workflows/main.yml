@@ -1,0 +1,47 @@
+name: CI/CD Pipeline
+
+# Конвеєр запускається при кожному push у гілку main
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Копіюємо код із репозиторію на віртуальну машину GitHub
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Налаштовуємо Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    # 3. Етап BUILD: Встановлюємо залежності
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 pytest  # Інструменти для лінтингу та тестів
+
+    # 4. Етап LINT: Перевірка коду на помилки (стилістика)
+    - name: Lint with flake8
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # 5. Етап TEST: Запуск Unit-тестів
+    - name: Run tests
+      run: pytest
+
+  # Опціонально: Етап Docker Push (тільки якщо build-and-test пройшов успішно)
+  docker-build-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: docker build -t my-login/order-service:latest .
